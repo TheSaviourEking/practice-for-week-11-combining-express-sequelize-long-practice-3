@@ -67,6 +67,14 @@ router.get('/', async (req, res, next) => {
     const where = {};
 
     // Your code here
+    const firstName = req.query.firstName;
+    if (firstName) {
+        where.firstName = { [Op.substring]: firstName };
+    }
+    const lastName = req.query.lastName;
+    if (lastName) {
+        where.lastName = { [Op.substring]: lastName };
+    }
 
 
     // Phase 2C: Handle invalid params with "Bad Request" response
@@ -108,7 +116,7 @@ router.get('/', async (req, res, next) => {
         offset
     });
 
-    result.count = await Student.count();
+    result.count = await Student.count({ where });
 
     // Phase 2E: Include the page number as a key of page in the response data
     // In the special case (page=0, size=0) that returns all students, set
