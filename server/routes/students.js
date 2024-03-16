@@ -97,11 +97,9 @@ router.get('/', async (req, res, next) => {
 
     result.rows = await Student.findAll({ // TODO: return to just findAll
         attributes: ['id', 'firstName', 'lastName', 'leftHanded'],
-        attributes: ['id'],
         where,
         // Phase 1A: Order the Students search results
         order: [['lastName', 'ASC'], ['firstName', 'ASC']],
-        order: [['id', 'ASC']],
         // Phase 2D: Add limit and offset to the query
         limit,
         offset
