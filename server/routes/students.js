@@ -15,8 +15,9 @@ router.get('/', async (req, res, next) => {
     let page = req.query.page ? parseInt(req.query.page) : 1;
     let size = req.query.size ? parseInt(req.query.size) : 10;
 
-    if (!Number(page) && page !== parseInt(0)) page = 1;
-    if (!Number(size) && size !== parseInt(0)) size = 10;
+    if (!parseInt(page) && page !== parseInt(0)) page = 1;
+    if (!parseInt(size) && size !== parseInt(0)) size = 10;
+    if (size > 200) size = 200;
 
     // Phase 2B: Calculate limit and offset
     // Phase 2B (optional): Special case to return all students (page=0, size=0)
@@ -26,12 +27,16 @@ router.get('/', async (req, res, next) => {
 
     // return all students (page=0, size=0)
     let limit = -1, offset = -1;
+    if (page < 0) page = -page;
+    if (size < 0) size = -size;
+
     if (page >= 1 && size >= 1) {
         limit = size;
         offset = (page - 1) * size;
     }
-    if (!(page && size)) {
-        errorResult.errors.push({message: 'Requires valid page and size params'})
+
+    if ((!page && page !== 0) && (!size && size !== 0)) {
+        errorResult.errors.push({ message: 'Requires valid page and size params' })
     }
 
     // Phase 4: Student Search Filters
@@ -78,6 +83,11 @@ router.get('/', async (req, res, next) => {
             }
     */
     // Your code here
+    if (errorResult.errors.length >= 1) {
+        // errorResult.status = 400;
+        // errorResult.name = 'BadRequest';
+        next(errorResult);
+    };
 
     let result = {};
 
@@ -85,14 +95,16 @@ router.get('/', async (req, res, next) => {
     // limits and offsets as a property of count on the result
     // Note: This should be a new query
 
-    result.rows = await Student.findAndCountAll({ // TODO: return to just findAll
+    result.rows = await Student.findAll({ // TODO: return to just findAll
         attributes: ['id', 'firstName', 'lastName', 'leftHanded'],
         attributes: ['id'],
         where,
         // Phase 1A: Order the Students search results
         order: [['lastName', 'ASC'], ['firstName', 'ASC']],
         order: [['id', 'ASC']],
-        limit, offset
+        // Phase 2D: Add limit and offset to the query
+        limit,
+        offset
     });
 
     // Phase 2E: Include the page number as a key of page in the response data
@@ -106,6 +118,7 @@ router.get('/', async (req, res, next) => {
         }
     */
     // Your code here
+    result.page = page === 0 ? 1 : page
 
     // Phase 3B:
     // Include the total number of available pages for this query as a key
@@ -124,7 +137,7 @@ router.get('/', async (req, res, next) => {
     // Your code here
 
     res.json(result);
-    // res.json({ page, size });
+    // res.json({ page, size, limit, offset });
 });
 
 // Export class - DO NOT MODIFY
