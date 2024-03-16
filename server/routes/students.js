@@ -12,6 +12,11 @@ router.get('/', async (req, res, next) => {
 
     // Phase 2A: Use query params for page & size
     // Your code here
+    let page = req.query.page ? parseInt(req.query.page) : 1;
+    let size = req.query.size ? parseInt(req.query.size) : 10;
+
+    if (!Number(page)) page = 1;
+    if (!Number(size)) size = 10;
 
     // Phase 2B: Calculate limit and offset
     // Phase 2B (optional): Special case to return all students (page=0, size=0)
@@ -70,11 +75,13 @@ router.get('/', async (req, res, next) => {
     // limits and offsets as a property of count on the result
     // Note: This should be a new query
 
-    result.rows = await Student.findAll({
+    result.rows = await Student.findAndCountAll({ // TODO: return to just findAll
         attributes: ['id', 'firstName', 'lastName', 'leftHanded'],
+        attributes: ['id'],
         where,
         // Phase 1A: Order the Students search results
-        order: [['lastName', 'ASC'], ['firstName', 'ASC']]
+        order: [['lastName', 'ASC'], ['firstName', 'ASC']],
+        order: [['id', 'ASC']]
     });
 
     // Phase 2E: Include the page number as a key of page in the response data
