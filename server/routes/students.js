@@ -67,11 +67,11 @@ router.get('/', async (req, res, next) => {
     const where = {};
 
     // Your code here
-    const firstName = req.query.firstName;
+    const firstName = req.query.firstName ? req.query.firstName : null;
     if (firstName) {
         where.firstName = { [Op.substring]: firstName };
     }
-    const lastName = req.query.lastName;
+    const lastName = req.query.lastName ? req.query.lastName : null;
     if (lastName) {
         where.lastName = { [Op.substring]: lastName };
     }
@@ -81,7 +81,7 @@ router.get('/', async (req, res, next) => {
             where.leftHanded = true;
         } else if (lefty === 'false') {
             where.leftHanded = false
-        } else  {
+        } else {
             errorResult.errors.push({ message: 'Lefty should be either true or false' })
         }
     }
