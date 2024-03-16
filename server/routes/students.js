@@ -75,6 +75,16 @@ router.get('/', async (req, res, next) => {
     if (lastName) {
         where.lastName = { [Op.substring]: lastName };
     }
+    const lefty = req.query.lefty ? req.query.lefty : null;
+    if (lefty) {
+        if (lefty === 'true') {
+            where.leftHanded = true;
+        } else if (lefty === 'false') {
+            where.leftHanded = false
+        } else  {
+            errorResult.errors.push({ message: 'Lefty should be either true or false' })
+        }
+    }
 
 
     // Phase 2C: Handle invalid params with "Bad Request" response
@@ -96,7 +106,7 @@ router.get('/', async (req, res, next) => {
     if (errorResult.errors.length >= 1) {
         // errorResult.status = 400;
         // errorResult.name = 'BadRequest';
-        errorResult.count = await Student.count();
+        errorResult.count = await Student.count({ where });
         next(errorResult);
     };
 
