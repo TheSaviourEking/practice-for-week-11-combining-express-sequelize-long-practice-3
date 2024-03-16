@@ -15,9 +15,11 @@ router.get('/', async (req, res, next) => {
     let page = req.query.page ? parseInt(req.query.page) : 1;
     let size = req.query.size ? parseInt(req.query.size) : 10;
 
-    if (!parseInt(page) && page !== parseInt(0)) page = 1;
-    if (!parseInt(size) && size !== parseInt(0)) size = 10;
-    if (size > 200) size = 200;
+    // for Optional phase 3c to work, we need to ignore the below checks
+    // if (!parseInt(page) && page !== parseInt(0)) page = 1;
+    // if (!parseInt(size) && size !== parseInt(0)) size = 10;
+    if (parseInt(size) && size > 200) size = 200;
+
 
     // Phase 2B: Calculate limit and offset
     // Phase 2B (optional): Special case to return all students (page=0, size=0)
@@ -35,7 +37,7 @@ router.get('/', async (req, res, next) => {
         offset = (page - 1) * size;
     }
 
-    if ((!page && page !== 0) && (!size && size !== 0)) {
+    if ((!Number(page) && page !== 0) || (!Number(size) && size !== 0)) {
         errorResult.errors.push({ message: 'Requires valid page and size params' })
     }
 
@@ -86,6 +88,7 @@ router.get('/', async (req, res, next) => {
     if (errorResult.errors.length >= 1) {
         // errorResult.status = 400;
         // errorResult.name = 'BadRequest';
+        errorResult.count = await Student.count();
         next(errorResult);
     };
 
@@ -104,6 +107,8 @@ router.get('/', async (req, res, next) => {
         limit,
         offset
     });
+
+    result.count = await Student.count();
 
     // Phase 2E: Include the page number as a key of page in the response data
     // In the special case (page=0, size=0) that returns all students, set
@@ -133,6 +138,7 @@ router.get('/', async (req, res, next) => {
         }
     */
     // Your code here
+    result.pageCount = page === 0 || size === 0 ? 1 : Math.ceil(result.count / size);
 
     res.json(result);
     // res.json({ page, size, limit, offset });
