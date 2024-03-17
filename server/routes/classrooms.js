@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 // Import model(s)
-const { Classroom, Supply, StudentClassroom, sequelize } = require('../db/models');
+const { Classroom, Supply, StudentClassroom, Student, sequelize } = require('../db/models');
 const { Op } = require('sequelize');
 
 // List of classrooms
@@ -87,9 +87,32 @@ router.get('/:id', async (req, res, next) => {
         // then firstName (both in ascending order)
         // (Optional): No need to include the StudentClassrooms
         // Your code here
+        // include: [{
+        //     model: Supply,
+        //     where: { classroomId: req.params.id }
+        // }],
+        include: [{
+            model: Supply,
+            attributes: ['id', 'name', 'category', 'handed'],
+            where: { classroomId: req.params.id }
+        },
+        {
+            model: Student,
+            attributes: ['id', 'firstName', 'lastName'],
+            through: {
+                // model: StudentClassroom,
+                attributes: []
+            }
+        }
+        ],
+
+        order: [
+            [Supply, 'category'], [Supply, 'name'],
+            [Student, 'lastName'], [Student, 'lastName']
+        ]
 
         // => phase 5A: Classroom's supply count option 2
-        raw: true
+        // raw: true
     });
 
     if (!classroom) {
@@ -109,7 +132,7 @@ router.get('/:id', async (req, res, next) => {
     // Your code here
 
     // => phase 5A: Classroom's supply count option 1
-    // classroom = classroom.toJSON();
+    classroom = classroom.toJSON();
     classroom.supplyCount = await Supply.count({ where: { classroomId: req.params.id } });
     classroom.studentCount = await StudentClassroom.count({ where: { classroomId: req.params.id } });
     if (classroom.studentCount > classroom.studentLimit) classroom.overloaded = true;
