@@ -37,6 +37,34 @@ router.get('/', async (req, res, next) => {
     const where = {};
 
     // Your code here
+    const name = req.query.name ? req.query.name : null;
+    if (name) where.name = { [Op.substring]: name };
+
+    let studentLimit = req.query.studentLimit ? req.query.studentLimit : null;
+    if (studentLimit) {
+        if (studentLimit.includes(',')) {
+            let [minStudentLimit, maxStudentLimit] = studentLimit.split(',');
+            minStudentLimit = minStudentLimit ? parseInt(minStudentLimit) : null;
+            maxStudentLimit = maxStudentLimit ? parseInt(maxStudentLimit) : null;
+            if (minStudentLimit && maxStudentLimit && minStudentLimit <= maxStudentLimit) {
+                where.studentLimit = {
+                    [Op.between]: [minStudentLimit, maxStudentLimit]
+                }
+            } else {
+                errorResult.errors.push({ messae: 'Student Limit should be two numbers: min,max' });
+            }
+        } else {
+            studentLimit = studentLimit ? Number(studentLimit) : null;
+            if (studentLimit) where.studentLimit = { [Op.eq]: studentLimit };
+            else { errorResult.errors.push({ message: 'Student Limit should be an integer' }) };
+        }
+    }
+
+    if (errorResult.errors.length >= 1) {
+        errorResult.count = await Classroom.count({ where });
+        next(errorResult);
+    };
+
 
     const classrooms = await Classroom.findAll({
         attributes: ['id', 'name', 'studentLimit'],
@@ -92,7 +120,7 @@ router.get('/:id', async (req, res, next) => {
         raw: true
     });
     classroom.avgGrade = classroom.avgGrade[0].avgGrade;
-    
+
     res.json(classroom);
 });
 
