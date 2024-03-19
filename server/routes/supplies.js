@@ -118,7 +118,8 @@ router.get('/scissors/calculate', async (req, res, next) => {
 
     // res.json(scissors);
     // res.json(students);
-    res.json(result);
+    // res.json(result);
+    res.json(req.query)
 });
 
 // Export class - DO NOT MODIFY

@@ -116,7 +116,7 @@ router.get('/', async (req, res, next) => {
     // Note: This should be a new query
     result.count = await Student.count({ where });
 
-    result.rows = await Student.findAll({ // TODO: return to just findAll
+    result.rows = await Student.findAll({ 
         attributes: ['id', 'firstName', 'lastName', 'leftHanded'],
         where,
         // Phase 1A: Order the Students search results

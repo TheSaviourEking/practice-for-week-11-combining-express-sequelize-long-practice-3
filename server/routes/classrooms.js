@@ -119,8 +119,7 @@ router.get('/:id', async (req, res, next) => {
                 // model: StudentClassroom,
                 attributes: []
             }
-        }
-        ],
+        }],
 
         order: [
             [Supply, 'category'], [Supply, 'name'],

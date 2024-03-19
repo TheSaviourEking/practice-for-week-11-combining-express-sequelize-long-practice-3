@@ -10,6 +10,8 @@ const app = express();
 // Express using json - DO NOT MODIFY
 app.use(express.json());
 
+app.use(require('./utils/paginate.js'))
+
 // Connect routers API - DO NOT MODIFY
 app.use('/', require('./routes/verification'));
 app.use('/classrooms', require('./routes/classrooms'));
