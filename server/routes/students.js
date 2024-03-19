@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 // Import model(s)
-const { Student } = require('../db/models');
+const { Student, Classroom, StudentClassroom } = require('../db/models');
 const { Op } = require("sequelize");
 
 // List
@@ -82,7 +82,7 @@ router.get('/', async (req, res, next) => {
         } else if (lefty === 'false') {
             where.leftHanded = false
         } else {
-            errorResult.errors.push({ message: 'Lefty should be either true or false' })
+            errorResult.errors.push({ message: 'Lefty should be either true or false' });
         }
     }
 
@@ -104,9 +104,8 @@ router.get('/', async (req, res, next) => {
     */
     // Your code here
     if (errorResult.errors.length >= 1) {
-        // errorResult.status = 400;
-        // errorResult.name = 'BadRequest';
         errorResult.count = await Student.count({ where });
+
         next(errorResult);
     };
 
@@ -115,18 +114,29 @@ router.get('/', async (req, res, next) => {
     // Phase 3A: Include total number of results returned from the query without
     // limits and offsets as a property of count on the result
     // Note: This should be a new query
+    result.count = await Student.count({ where });
 
     result.rows = await Student.findAll({ // TODO: return to just findAll
         attributes: ['id', 'firstName', 'lastName', 'leftHanded'],
         where,
         // Phase 1A: Order the Students search results
-        order: [['lastName', 'ASC'], ['firstName', 'ASC']],
+        order: [
+            ['lastName', 'ASC'],
+            ['firstName', 'ASC']
+        ],
         // Phase 2D: Add limit and offset to the query
         limit,
-        offset
-    });
+        offset,
 
-    result.count = await Student.count({ where });
+        include: {
+            model: Classroom,
+            attributes: ['id', 'name'],
+            through: {
+                attributes: ['grade']
+            }
+        },
+        order: [[Classroom, StudentClassroom, 'grade', 'DESC']]
+    });
 
     // Phase 2E: Include the page number as a key of page in the response data
     // In the special case (page=0, size=0) that returns all students, set
@@ -139,7 +149,7 @@ router.get('/', async (req, res, next) => {
         }
     */
     // Your code here
-    result.page = page === 0 ? 1 : page
+    result.page = page === 0 ? 1 : page;
 
     // Phase 3B:
     // Include the total number of available pages for this query as a key
@@ -159,7 +169,6 @@ router.get('/', async (req, res, next) => {
     result.pageCount = page === 0 || size === 0 ? 1 : Math.ceil(result.count / size);
 
     res.json(result);
-    // res.json({ page, size, limit, offset });
 });
 
 // Export class - DO NOT MODIFY
